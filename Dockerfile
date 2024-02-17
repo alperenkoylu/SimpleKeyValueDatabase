@@ -19,10 +19,7 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN chown -R app /app/wwwroot
-RUN chmod 777 /app/wwwroot
 ENTRYPOINT ["dotnet", "API.dll"]

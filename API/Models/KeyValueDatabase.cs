@@ -29,27 +29,20 @@ public class KeyValueDatabase
 
         DataDirectory = dataDirectory;
 
-        if (Directory.Exists(dataDirectory))
-        {
-            List<string> SSTableFiles = Directory.GetFiles(dataDirectory, "*SSTable.json").OrderBy(fileName => fileName).ToList();
+        List<string> SSTableFiles = Directory.GetFiles(dataDirectory, "*SSTable.json").OrderBy(fileName => fileName).ToList();
 
-            foreach (var SSTableFileName in SSTableFiles)
+        foreach (var SSTableFileName in SSTableFiles)
+        {
+            StringSortedTable tempSSTable = new(SSTableFileName);
+
+            if (SSTableFileName.Equals(CompactedSSTableName))
             {
-                StringSortedTable tempSSTable = new(SSTableFileName);
-
-                if (SSTableFileName.Equals(CompactedSSTableName))
-                {
-                    CompactedSSTable = tempSSTable;
-                }
-                else
-                {
-                    SSTables.Add(tempSSTable);
-                }
+                CompactedSSTable = tempSSTable;
             }
-        }
-        else
-        {
-            Directory.CreateDirectory(DataDirectory);
+            else
+            {
+                SSTables.Add(tempSSTable);
+            }
         }
     }
 
@@ -117,9 +110,9 @@ public class KeyValueDatabase
         InMemoryTable.Clear();
     }
 
-    private void Compaction()
+    private StringSortedTable GetCompactedSSTable()
     {
-        StringSortedTable tempCompactedSSTable = new();
+        StringSortedTable compactedSSTable = new();
 
         HashSet<string> ProcessedKeys = [];
 
@@ -134,7 +127,7 @@ public class KeyValueDatabase
                     continue;
                 }
 
-                tempCompactedSSTable.Add(Node.Key, Node.Value);
+                compactedSSTable.Add(Node.Key, Node.Value);
                 ProcessedKeys.Add(Node.Key);
             }
         }
@@ -148,10 +141,17 @@ public class KeyValueDatabase
                     continue;
                 }
 
-                tempCompactedSSTable.Add(Node.Key, Node.Value);
+                compactedSSTable.Add(Node.Key, Node.Value);
                 ProcessedKeys.Add(Node.Key);
             }
         }
+
+        return compactedSSTable;
+    }
+
+    private void Compaction()
+    {
+        StringSortedTable tempCompactedSSTable = GetCompactedSSTable();
 
         try
         {
