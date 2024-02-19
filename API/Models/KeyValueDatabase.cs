@@ -81,11 +81,13 @@ public class KeyValueDatabase
     {
         InMemoryTable.Add(key, value);
 
-        WriteAhead();
-
-        if (InMemoryTable.Size == MemoryTableSizeLimit)
+        if (InMemoryTable.Size >= MemoryTableSizeLimit)
         {
             Flush();
+        }
+        else
+        {
+            WriteAhead();
         }
     }
 
@@ -93,11 +95,13 @@ public class KeyValueDatabase
     {
         InMemoryTable.Delete(key);
 
-        WriteAhead();
-
         if (InMemoryTable.Size >= MemoryTableSizeLimit)
         {
             Flush();
+        }
+        else
+        {
+            WriteAhead();
         }
     }
 
@@ -131,6 +135,13 @@ public class KeyValueDatabase
         }
 
         InMemoryTable.Clear();
+        
+        string pathForWriteAheadLog = Path.Combine(DataDirectory, WriteAheadLogFileName);
+
+        if (File.Exists(pathForWriteAheadLog))
+        {
+            File.Delete(pathForWriteAheadLog);
+        }
     }
 
     private StringSortedTable GetCompactedSSTable()
