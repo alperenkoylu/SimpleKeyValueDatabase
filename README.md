@@ -1,5 +1,5 @@
 # SimpleKeyValueDatabase
-Implementation of a simple key value database, using lsm tree (memtable and ss table) for High Load Software Architecture course.
+Implementation of a simple key value database, using lsm tree (memtable and ss table).
 ## Getting Started
 These instructions will cover usage information of project on the docker container.
 ### Prerequisities
