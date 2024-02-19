@@ -7,15 +7,15 @@ In order to run this container you'll need docker installed.
 ### Usage
 #### Build Image
 ```shell
-docker build -t SimpleKeyValueDatabaseImage .
+docker build -t simple-key-value-database-image .
 ```
 #### Run Container
 ```shell
-docker run -d -p 5555:8080 --name SimpleKeyValueDatabaseContainer SimpleKeyValueDatabaseImage
+docker run -d -p 5555:8080 --name simple-key-value-database-container simple-key-value-database-image
 ```
 ##### To specify memory table limit and ss table limit
 ```shell
-docker run -d -p 5555:8080 -e MEM_TABLE_SIZE_LIMIT=30 -e SS_TABLE_COUNT_LIMIT=30 --name SimpleKeyValueDatabaseContainer SimpleKeyValueDatabaseImage
+docker run -d -p 5555:8080 -e MEM_TABLE_SIZE_LIMIT=30 -e SS_TABLE_COUNT_LIMIT=30 --name simple-key-value-database-container simple-key-value-database-image
 ```
 #### Environment Variables
 * `MEM_TABLE_SIZE_LIMIT` - In memory table limit before flush. (Default = 5)
@@ -38,7 +38,8 @@ It allows you to operations below.
 * Delete --> [DELETE] /api/keyvaluedatabase/{key}
 * Read --> [GET] /api/keyvaluedatabase/{key}
 
-Additionally you can download SS Tables as zip file. SS Table files will be json files and formatted as 
+Additionally you can download Write Ahead Logs and SS Tables as zip file.
+SS Table files will be json files and formatted as 
 ```link
 yyyyMMddHHmmss-SSTable.json
 ```

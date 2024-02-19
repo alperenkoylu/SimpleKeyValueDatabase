@@ -81,11 +81,23 @@ keyValueDatabaseRouteGroup.MapGet("sstables", (KeyValueDatabase database) =>
 {
     if (Directory.Exists(KeyValueDatabaseDataPath))
     {
-        string ZipFileName = string.Concat(DateTime.Now.ToString("yyyyMMddHHmmss"), "_SSTables.zip");
+        string ZipFileName = string.Concat("SimpleKeyValueDatabaseDump_", DateTime.Now.ToString("yyyyMMddHHmmss"), ".zip");
         string ZipFilePath = Path.Combine(Path.GetTempPath(), ZipFileName);
 
         using (var zip = new ZipArchive(File.Create(ZipFilePath), ZipArchiveMode.Create))
         {
+            string WriteAheadLogFilePath = Path.Combine(KeyValueDatabaseDataPath, keyValueDatabase.WriteAheadLogFileName);
+            
+            if (File.Exists(WriteAheadLogFilePath))
+            {
+                ZipArchiveEntry entry = zip.CreateEntry(keyValueDatabase.WriteAheadLogFileName);
+
+                using Stream entryStream = entry.Open();
+                using FileStream fileStream = File.OpenRead(WriteAheadLogFilePath);
+
+                fileStream.CopyTo(entryStream);
+            }
+            
             List<string> SSTableFiles = Directory.GetFiles(KeyValueDatabaseDataPath, "*.json").OrderBy(fileName => fileName).ToList();
 
             foreach (string SSTableFileName in SSTableFiles)

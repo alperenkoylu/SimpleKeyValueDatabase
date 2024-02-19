@@ -5,7 +5,8 @@ namespace API.Models;
 
 public class KeyValueDatabase
 {
-    private readonly string CompactedSSTableName = "00000000000000-SSTable.json";
+    public readonly string WriteAheadLogFileName = "WriteAheadLog.json";
+    public readonly string CompactedSSTableName = "00000000000000-SSTable.json";
     private string DataDirectory { get; set; }
 
     private MemoryTable InMemoryTable { get; set; }
@@ -23,11 +24,11 @@ public class KeyValueDatabase
         MemoryTableSizeLimit = memoryTableSizeLimit;
         SSTablesCountLimit = ssTablesCountLimit;
 
-        InMemoryTable = new MemoryTable();
+        DataDirectory = dataDirectory;
+        
+        InMemoryTable = new MemoryTable(Path.Combine(DataDirectory, WriteAheadLogFileName));
         SSTables = [];
         CompactedSSTable = null;
-
-        DataDirectory = dataDirectory;
 
         List<string> SSTableFiles = Directory.GetFiles(dataDirectory, "*SSTable.json").OrderBy(fileName => fileName).ToList();
 
@@ -80,6 +81,8 @@ public class KeyValueDatabase
     {
         InMemoryTable.Add(key, value);
 
+        WriteAhead();
+
         if (InMemoryTable.Size == MemoryTableSizeLimit)
         {
             Flush();
@@ -90,11 +93,31 @@ public class KeyValueDatabase
     {
         InMemoryTable.Delete(key);
 
+        WriteAhead();
+
         if (InMemoryTable.Size >= MemoryTableSizeLimit)
         {
             Flush();
         }
     }
+
+    private void WriteAhead()
+    {
+        string pathForWriteAheadLog = Path.Combine(DataDirectory, WriteAheadLogFileName);
+
+        if (File.Exists(pathForWriteAheadLog))
+        {
+            File.Delete(pathForWriteAheadLog);
+        }
+
+        string data = JsonSerializer.Serialize(InMemoryTable.DataNodes, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+        });
+
+        File.WriteAllText(pathForWriteAheadLog, data);
+    }
+
 
     private void Flush()
     {

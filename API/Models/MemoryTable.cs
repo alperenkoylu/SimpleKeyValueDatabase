@@ -1,11 +1,26 @@
-﻿namespace API.Models;
+﻿using System.Text.Json;
+
+namespace API.Models;
 
 public class MemoryTable
 {
-    public Dictionary<string, DataNode> DataNodes { get; private set; } = [];
+    public Dictionary<string, DataNode>? DataNodes { get; private set; } = [];
 
     public int Size => DataNodes.Count;
 
+    public MemoryTable(string writeAheadLogPath)
+    {
+        if (File.Exists(writeAheadLogPath))
+        {
+            string writeAheadLogText = File.ReadAllText(writeAheadLogPath);
+
+            if (writeAheadLogText.Length > 0)
+            {
+                DataNodes = JsonSerializer.Deserialize<Dictionary<string, DataNode>>(writeAheadLogText);
+            }
+        }
+    }
+    
     public bool Get(string key, out string? value)
     {
         value = null;
